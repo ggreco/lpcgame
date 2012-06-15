@@ -36,6 +36,7 @@ namespace Tmx
 		, width()
 		, height()
 		, transparent_color()
+        , data(NULL)
 	{}
 
 	Image::~Image() 

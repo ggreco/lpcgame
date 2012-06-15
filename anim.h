@@ -35,6 +35,9 @@ class AnimObj : public Object
     int frame_;
     // time in msec to show next frame
     uint32_t next_frame_;
+
+    // object name
+    std::string name_;
 public:    
     AnimObj(const std::string &);
 

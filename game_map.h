@@ -9,13 +9,10 @@ struct SDL_Surface;
 
 class Map
 {
-    typedef std::map<const void *, SDL_Surface *> TilePicMap;
-    typedef TilePicMap::iterator TMapIt;
-    TilePicMap tiles_;
     Tmx::Map map_;
     std::string path_;
 
-    void load_tileset(const Tmx::Tileset *);
+    bool load_tileset(const Tmx::Tileset *);
 public:    
     int TileWidth() const { return map_.GetTileWidth(); }
     int TileHeight() const { return map_.GetTileHeight(); }

@@ -3,8 +3,8 @@
 
 Video *Object::video_ = NULL;
 
-Object::
-Object(const std::string &name) {
+StaticObject::
+StaticObject(const std::string &name) {
     SDL_Surface *s = IMG_Load(name.c_str());
 
     if (!s)
@@ -16,7 +16,7 @@ Object(const std::string &name) {
 
 // low level blitting code used by every object
 void Object::
-lowblit(SDL_Rect &rect, int mapx, int mapy) {
+lowblit(SDL_Surface *src, SDL_Rect rect, int mapx, int mapy) {
 // do not render if not visible
     if (mapx < (x_ + rect.w - video_->width()) ||
         mapy < (y_ + rect.h - video_->height()) ||
@@ -28,7 +28,7 @@ lowblit(SDL_Rect &rect, int mapx, int mapy) {
 
     // check if we render the whole object or only a piece of it
     if (posx < 0) {
-        rect.x = -posx;
+        rect.x -= posx;
         rect.w += posx;
         posx = 0;
     }
@@ -36,7 +36,7 @@ lowblit(SDL_Rect &rect, int mapx, int mapy) {
         rect.w = video_->width() - posx;
 
     if (posy < 0) {
-        rect.y = -posy;
+        rect.y -= posy;
         rect.h += posy;
         posy = 0;
     }
@@ -44,5 +44,5 @@ lowblit(SDL_Rect &rect, int mapx, int mapy) {
         rect.h = video_->height() - posy;
 
     // do the render
-    video_->blit(bitmap_, rect, posx, posy);
+    video_->blit(src, rect, posx, posy);
 }

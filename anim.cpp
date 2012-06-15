@@ -1,5 +1,4 @@
 #include "anim.h"
-#include "cfile.h"
 #include "tinyxml.h"
 #include "SDL_image.h"
 
@@ -33,8 +32,11 @@ AnimObj::AnimObj(const std::string &xmlname) : frame_(0)
    if (!baseNode)
        throw std::string("Invalid XML " + xmlname);
 
-   const TiXmlNode *sheetNode = baseNode->FirstChild("sheet");
-   while (sheetNode) {
+   if (const TiXmlNode *n = baseNode->FirstChild("name")) 
+       name_ = n->ToElement()->GetText();
+
+   for (const TiXmlNode *sheetNode = baseNode->FirstChild("sheet"); sheetNode; 
+                         sheetNode = baseNode->IterateChildren("sheet", sheetNode)) {
        int id;
        const TiXmlElement* e = sheetNode->ToElement();
        e->Attribute("id", &id);
@@ -53,11 +55,11 @@ AnimObj::AnimObj(const std::string &xmlname) : frame_(0)
            throw std::string("Unable to create animation sheet for " + base);
 
        std::cerr << "Loaded sheet " << id << " from " << base << "\n";
-       sheetNode = baseNode->IterateChildren("sheet", sheetNode);
+      
    }
 
-   const TiXmlNode *animNode = baseNode->FirstChild("anim");
-   while (animNode) {
+   for (const TiXmlNode *animNode = baseNode->FirstChild("anim"); animNode;
+                         animNode = baseNode->IterateChildren("anim", animNode)) {
        int s;
        const TiXmlElement* e = animNode->ToElement();
        Anim anim;
@@ -91,7 +93,6 @@ AnimObj::AnimObj(const std::string &xmlname) : frame_(0)
            actual_ = anim.name;
 
        std::cerr << "Loaded animation " << anim.name << " with " << anim.frames.size() << " frames.\n";
-       animNode = baseNode->IterateChildren("anim", animNode);
    }
 
    next_frame_ = SDL_GetTicks();

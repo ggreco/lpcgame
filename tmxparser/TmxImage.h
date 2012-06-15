@@ -57,11 +57,13 @@ namespace Tmx
 		// Get the transparent color used in the image.
 		const std::string &GetTransparentColor() const 
 		{ return transparent_color; }
-
+        void *GetData() const { return data; }
+        void SetData(void *d) { data = d; }
 	private:
 		std::string source;
 		int width;
 		int height;
 		std::string transparent_color;
+        void *data;
 	};
 };
