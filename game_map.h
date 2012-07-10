@@ -4,6 +4,7 @@
 #include "Tmx.h"
 #include <map>
 #include <string>
+#include <stdlib.h>
 
 struct SDL_Surface;
 
@@ -11,9 +12,14 @@ class Map
 {
     Tmx::Map map_;
     std::string path_;
+    char *navigation_map_;
+    int navigation_width_, navigation_height_;
 
     bool load_tileset(const Tmx::Tileset *);
+    void build_navigation_map();
 public:    
+    Map() : navigation_map_(NULL), navigation_height_(0), navigation_width_(0) {}
+    ~Map() { if (navigation_map_) ::free(navigation_map_); }
     int TileWidth() const { return map_.GetTileWidth(); }
     int TileHeight() const { return map_.GetTileHeight(); }
     bool Load(const std::string &name) {
@@ -22,8 +28,15 @@ public:
             path_ = name.substr(0, p + 1);
 
         map_.ParseFile(name);
-        return !map_.HasError();
+        if(map_.HasError())
+            return false;
+
+        build_navigation_map();
+        return true;
     }
+    int navigation_map(int, int) const;
+    void dump_screen_map() const;
+    bool walkable(int, int) const;
     void Render(SDL_Surface *, int, int);
 };
 #endif

@@ -31,6 +31,86 @@ load_tileset(const Tmx::Tileset *tileset)
     return false;
 }
 
+void Map::
+build_navigation_map()
+{
+    if (navigation_map_) {
+        ::free(navigation_map_);
+        navigation_height_ = navigation_width_ = 0;
+    }
+
+    // first we have to find the dimension of the navigation map
+    for (int i = 0; i < map_.GetNumLayers(); ++i)  {    
+        if (const Tmx::Layer *layer = map_.GetLayer(i)) {
+            if (layer->GetWidth() > navigation_width_)
+                navigation_width_ = layer->GetWidth();
+            if (layer->GetHeight() > navigation_height_)
+                navigation_height_ = layer->GetHeight();
+        }
+    }
+    navigation_map_ = (char*)::malloc(navigation_height_ * navigation_width_);
+    ::memset(navigation_map_, 1, navigation_width_ * navigation_height_);
+
+    // then we have to build it
+    for (int i = 0; i < map_.GetNumLayers(); ++i) {
+        const Tmx::Layer *layer = map_.GetLayer(i);
+
+        for (int x = 0; x < layer->GetWidth(); ++x) {
+            for (int y = 0; y < layer->GetHeight(); ++y) {
+                const Tmx::MapTile &tile =  layer->GetTile(x, y);
+
+                if(tile.id == 0)
+                    continue;
+
+                if (const Tmx::Tileset *tileset = map_.GetTileset(tile.tilesetId)) {
+                    if (const Tmx::Tile *t = tileset->GetTile(tile.id)) {
+                        const Tmx::PropertySet &props = t->GetProperties();
+                        if ( props.HasProperty("wall"))     
+                            navigation_map_[ x + y * navigation_width_] = 9;
+                    }
+                }
+            }
+        }
+    }
+}
+
+int Map::
+navigation_map(int x, int y) const
+{
+    if (x < 0 || y < 0 ||
+        x > navigation_width_ || y > navigation_height_)
+        return 9;
+    else 
+        return navigation_map_[x + y * navigation_width_];
+}
+
+bool Map::
+walkable(int x, int y) const
+{
+    x /= TileWidth();
+    y /= TileHeight();
+
+
+    return navigation_map(x, y) != 9;
+}
+
+
+#include <sstream>
+
+void Map::dump_screen_map() const
+{
+    if (!navigation_map_)
+        return;
+    std::ostringstream os;
+    for (int j = 0; j < navigation_height_; ++j) {
+        for (int i = 0; i < navigation_width_; ++i) 
+            os << (char) ('0' + navigation_map_[i + j * navigation_width_]);
+
+        os << '\n';                    
+    }
+    std::cerr << os.str();
+}
+
 void Map::Render(SDL_Surface *dest, int startx, int starty)
 {
     SDL_FillRect(dest, NULL, 0);

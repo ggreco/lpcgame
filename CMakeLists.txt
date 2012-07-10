@@ -10,5 +10,5 @@ include_directories(${SDL_INCLUDE_DIR} ${SDLIMAGE_INCLUDE_DIR} tmxparser tinyxml
 add_definitions("-DTIXML_USE_STL")
 add_subdirectory(tinyxml)
 add_subdirectory(tmxparser)
-add_executable(testgame game_map.cpp test.cpp char.cpp obj.cpp anim.cpp)
+add_executable(testgame game_map.cpp test.cpp char.cpp obj.cpp anim.cpp findpath.cpp)
 target_link_libraries(testgame tmxparser tinyxml ${SDLIMAGE_LIBRARY} ${SDL_LIBRARY}  z)

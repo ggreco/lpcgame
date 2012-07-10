@@ -10,6 +10,8 @@ int main(int argc, char *argv[])
         return -1;
 
     Map map;
+    MapSearchNode::RefMap = &map;
+    
     if (!map.Load(argv[1]))
         return -2;
 
@@ -19,14 +21,25 @@ int main(int argc, char *argv[])
         Object::Set(video);
         Character ch("hero.xml");
 
-        ch.position(200, 200);
+        int cx = 200, cy = 200;
         int msec_per_frame = 20;
         int x = map.TileWidth(), y = map.TileHeight(), delta_x = 0, delta_y = 0;
         uint32_t wanted = SDL_GetTicks();
 
+        ch.position(cx, cy);
+
         for (;;) {
-            x += delta_x;
-            y += delta_y;
+            if (map.walkable(ch.feet_x() + delta_x, ch.feet_y() + delta_y)) {
+                //x += delta_x;
+                //y += delta_y;
+                cx += delta_x;
+                cy += delta_y;
+            }
+
+            if (ch.moving()) 
+                ch.do_step();
+
+//          ch.position(cx, cy);
 
             if (x < 0)
                 x = 0;
@@ -49,6 +62,7 @@ int main(int argc, char *argv[])
                 video.flip();
             }
 
+
             SDL_Event e;
             if (!SDL_PollEvent(&e))
                 continue;
@@ -56,6 +70,9 @@ int main(int argc, char *argv[])
             switch (e.type) {
                 case SDL_QUIT:
                     exit(0);
+                case SDL_MOUSEBUTTONDOWN:
+                    ch.go_to((x + e.button.x),  (y + e.button.y));
+                    break;
                 case SDL_KEYDOWN:
                     switch (e.key.keysym.sym) {
                         case SDLK_RIGHT:
@@ -78,6 +95,9 @@ int main(int argc, char *argv[])
                     break;
                 case SDL_KEYUP:
                     switch (e.key.keysym.sym) {
+                        case SDLK_d:
+                            map.dump_screen_map();
+                            break;
                         case SDLK_ESCAPE:
                         case SDLK_q:
                             exit(0);

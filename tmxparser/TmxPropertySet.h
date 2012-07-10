@@ -61,6 +61,12 @@ namespace Tmx
 		// Returns whether there are no properties.
 		bool Empty() const { return properties.empty(); }
 
+        // Returns if there is a property with a certain name
+        bool HasProperty(const std::string &name) const {
+    		return properties.find(name) != properties.end();
+        }
+
+
 	private:
 		std::map< std::string, std::string > properties;
 

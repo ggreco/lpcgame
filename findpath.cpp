@@ -118,8 +118,38 @@ bool MapSearchNode::GetSuccessors( AStarSearch<MapSearchNode> *astarsearch, MapS
 	{
 		NewNode = MapSearchNode( x, y+1 );
 		astarsearch->AddSuccessor( NewNode );
+	}
+    // adding diagonals
+	if( (GetMap( x+1, y +1) < 9)
+		&& !((parent_x == x+1) && (parent_y == y+1))
+	  ) 
+	{
+		NewNode = MapSearchNode( x+1, y + 1);
+		astarsearch->AddSuccessor( NewNode );
 	}	
 
+	if( (GetMap( x+1, y -1) < 9)
+		&& !((parent_x == x+1) && (parent_y == y-1))
+	  ) 
+	{
+		NewNode = MapSearchNode( x+1, y-1);
+		astarsearch->AddSuccessor( NewNode );
+	}	
+	if( (GetMap( x-1, y +1) < 9)
+		&& !((parent_x == x-1) && (parent_y == y+1))
+	  ) 
+	{
+		NewNode = MapSearchNode( x-1, y + 1);
+		astarsearch->AddSuccessor( NewNode );
+	}	
+
+	if( (GetMap( x-1, y -1) < 9)
+		&& !((parent_x == x-1) && (parent_y == y-1))
+	  ) 
+	{
+		NewNode = MapSearchNode( x-1, y-1);
+		astarsearch->AddSuccessor( NewNode );
+	}	    
 	return true;
 }
 

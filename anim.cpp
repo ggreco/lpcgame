@@ -1,6 +1,54 @@
 #include "anim.h"
 #include "tinyxml.h"
 #include "SDL_image.h"
+#include "game_map.h"
+
+void AnimObj::
+do_step()
+{
+   if (step_) {
+       step_->PrintNodeInfo();
+       step_ = astar_.GetSolutionNext();
+   }
+}
+
+bool AnimObj::
+go_to(int x, int y)
+{
+    delta_x_ = 0;
+    delta_y_ = 0;
+    astar_.FreeSolutionNodes();
+    astar_.EnsureMemoryFreed();
+    MapSearchNode ns(base_x() / MapSearchNode::RefMap->TileWidth(), base_y() / MapSearchNode::RefMap->TileHeight());
+    MapSearchNode ne(x / MapSearchNode::RefMap->TileWidth(), y / MapSearchNode::RefMap->TileHeight());
+
+    astar_.SetStartAndGoalStates(ns, ne);
+
+    std::cerr << "Start: ";
+    ns.PrintNodeInfo();
+    std::cerr << "End: ";
+    ne.PrintNodeInfo();
+
+    unsigned int SearchState;
+    unsigned int SearchSteps = 0;
+
+    do {
+        SearchState = astar_.SearchStep();
+
+        SearchSteps++;
+    } while( SearchState == AStarSearch<MapSearchNode>::SEARCH_STATE_SEARCHING );
+
+    if( SearchState == AStarSearch<MapSearchNode>::SEARCH_STATE_SUCCEEDED ) {
+        std::cout << "Search found goal state\n";
+        step_ = astar_.GetSolutionStart();
+    }
+    else if( SearchState == AStarSearch<MapSearchNode>::SEARCH_STATE_FAILED ) 
+    {
+        std::cout << "Search terminated. Did not find goal state\n";
+        step_ = NULL;
+    }
+    std::cout << "SearchSteps : " << SearchSteps << "\n";
+}
 
 bool AnimObj::
 Set(const std::string &anim)
@@ -19,7 +67,7 @@ Set(const std::string &anim)
    return true;
 }
 
-AnimObj::AnimObj(const std::string &xmlname) : frame_(0)
+AnimObj::AnimObj(const std::string &xmlname) : frame_(0), step_(NULL)
 {
    TiXmlDocument doc(xmlname);
    if (!doc.LoadFile())
@@ -40,21 +88,22 @@ AnimObj::AnimObj(const std::string &xmlname) : frame_(0)
        int id;
        const TiXmlElement* e = sheetNode->ToElement();
        e->Attribute("id", &id);
-       std::string base, cloth, hair;
 
-       if (const TiXmlNode *n = sheetNode->FirstChild("base")) 
-           base = n->ToElement()->GetText();
-       if (const TiXmlNode *n = sheetNode->FirstChild("cloth")) 
-           cloth = n->ToElement()->GetText();
-       if (const TiXmlNode *n = sheetNode->FirstChild("hair")) 
-           hair = n->ToElement()->GetText();
-       
-       if (SDL_Surface *s = load_sheet(base, cloth, hair))
+       std::map<std::string, std::string> layers;
+
+       for (const TiXmlNode *layer = sheetNode->FirstChild("layer"); layer; 
+                             layer = sheetNode->IterateChildren("layer", layer)) {
+            const TiXmlElement* e = layer->ToElement();
+
+            layers[e->Attribute("id")] = e->GetText();
+       }
+
+       if (SDL_Surface *s = load_sheets(layers))
            sheets_[id] = s;
        else
-           throw std::string("Unable to create animation sheet for " + base);
+           throw std::string("Unable to create animation sheet for " + xmlname);
 
-       std::cerr << "Loaded sheet " << id << " from " << base << "\n";
+       std::cerr << "Loaded sheet " << id << " for " << xmlname <<  " with " << layers.size() << " layers\n";
       
    }
 
@@ -117,37 +166,29 @@ blit(int x, int y)
 }
 
 SDL_Surface *AnimObj::
-load_sheet(const std::string &base, const std::string &cloth, const std::string &hair)
+load_sheets(const std::map<std::string, std::string> &sheets)
 {
-    SDL_Surface *b = IMG_Load(base.c_str()), *c = NULL, *h = NULL;
+    SDL_Surface *temp = NULL;
 
-    if (!b) 
-        throw std::string("Unable to load character with skin " + base);
+    for (std::map<std::string, std::string>::const_iterator it =  sheets.begin();
+                                                            it != sheets.end(); ++it) {
+        SDL_Surface *b = IMG_Load(it->second.c_str());
 
-    if (!cloth.empty()) {
-        c = IMG_Load(cloth.c_str());    
+        if (!b) 
+            throw std::string("Unable to load character sheet layer id " + it->first + ", filename " + it->second);
 
-
-        if (c && (c->w != b->w ||
-                  c->h != b->h))
-            throw std::string("Invalid cloth " + cloth + " for character base " + base);
+        if (!temp)
+            temp = b;
+        else {
+            if (b->w != temp->w ||
+                b->h != temp->h)
+                    throw std::string("Invalid layer " + it->first + ", filename " + it->second);
+            SDL_BlitSurface(b, NULL, temp, NULL);
+            SDL_FreeSurface(b);
+        }
     }
-    if (!hair.empty()) {
-        h = IMG_Load(hair.c_str());
-        if (h && (h->w != b->w ||
-                  h->h != b->h))
-            throw std::string("Invalid hair " + hair + " for character base " + base);
-    }
 
-    if (c) {
-        SDL_BlitSurface(c, NULL, b, NULL);
-        SDL_FreeSurface(c);
-    } 
-    if (h) {
-        SDL_BlitSurface(h, NULL, b, NULL);
-        SDL_FreeSurface(h);
-    }
-    SDL_Surface * bitmap =  SDL_DisplayFormatAlpha(b);
-    SDL_FreeSurface(b);
+    SDL_Surface * bitmap =  SDL_DisplayFormatAlpha(temp);
+    SDL_FreeSurface(temp);
     return bitmap;
 }

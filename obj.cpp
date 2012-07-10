@@ -18,8 +18,8 @@ StaticObject(const std::string &name) {
 void Object::
 lowblit(SDL_Surface *src, SDL_Rect rect, int mapx, int mapy) {
 // do not render if not visible
-    if (mapx < (x_ + rect.w - video_->width()) ||
-        mapy < (y_ + rect.h - video_->height()) ||
+    if (mapx < (x_ - rect.w - video_->width()) ||
+        mapy < (y_ - rect.h - video_->height()) ||
         mapx > (x_ + rect.w) ||
         mapy > (y_ + rect.h))
         return;
