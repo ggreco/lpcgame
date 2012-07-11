@@ -11,6 +11,8 @@ protected:
 public:
 
     static void Set(Video &v) { video_ = &v; }
+    int x() const { return x_; }
+    int y() const { return y_; }
     void position(int x, int y) { x_ = x; y_ = y; }
     std::pair<int, int> position() const { return std::make_pair(x_, y_); }
 

@@ -13,11 +13,8 @@ do_step()
         MapSearchNode *next = step_;
         // se sono gia' a destinazione passo al prossimo step
         if (base_x() / MapSearchNode::RefMap->TileWidth() == step_->x &&
-                base_y() / MapSearchNode::RefMap->TileHeight() == step_->y ) {
-            std::cerr << "Reached: ";
-            step_->PrintNodeInfo();
+                base_y() / MapSearchNode::RefMap->TileHeight() == step_->y ) 
             next = astar_.GetSolutionNext();
-        }
 
         if (next == NULL) {
             // arrived!
@@ -37,8 +34,6 @@ do_step()
         }
 
         if (next != step_) {
-            std::cerr << "Moving to: ";
-            next->PrintNodeInfo();
             // diagonal movements
             if (step_->x > next->x && step_->y > next->y) {
                 delta_x_ = -3;

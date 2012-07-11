@@ -38,16 +38,14 @@ go_to(int x, int y)
         SearchSteps++;
     } while( SearchState == AStarSearch<MapSearchNode>::SEARCH_STATE_SEARCHING );
 
-    if( SearchState == AStarSearch<MapSearchNode>::SEARCH_STATE_SUCCEEDED ) {
-        std::cout << "Search found goal state\n";
+    if( SearchState == AStarSearch<MapSearchNode>::SEARCH_STATE_SUCCEEDED ) 
         step_ = astar_.GetSolutionStart();
-    }
     else if( SearchState == AStarSearch<MapSearchNode>::SEARCH_STATE_FAILED ) 
     {
-        std::cout << "Search terminated. Did not find goal state\n";
+        std::cerr << "Search terminated. Did not find goal state\n";
         step_ = NULL;
     }
-    std::cout << "SearchSteps : " << SearchSteps << "\n";
+    std::cerr << "SearchSteps : " << SearchSteps << "\n";
 }
 
 bool AnimObj::
