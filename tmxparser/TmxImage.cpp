@@ -31,12 +31,13 @@
 
 namespace Tmx 
 {	
-	Image::Image() 
+	Image::Image(const std::string &p) 
 		: source()
 		, width()
 		, height()
 		, transparent_color()
         , data(NULL)
+        , path(p)
 	{}
 
 	Image::~Image() 

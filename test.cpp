@@ -27,13 +27,14 @@ int main(int argc, char *argv[])
         ch.position(200, 200);
 
         for (;;) {
+            uint32_t now = SDL_GetTicks();
+            wanted += msec_per_frame;
+
             if (ch.moving()) 
-                ch.do_step();
+                ch.do_step(now);
 
             scroller.move(ch.x(), ch.y());
 
-            uint32_t now = SDL_GetTicks();
-            wanted += msec_per_frame;
 
             if (wanted > (now + 2)) {
                 SDL_Delay(wanted - now);
@@ -52,7 +53,7 @@ int main(int argc, char *argv[])
                     case SDL_QUIT:
                         exit(0);
                     case SDL_MOUSEBUTTONDOWN:
-                        ch.go_to((scroller.x() + e.button.x),  (scroller.y() + e.button.y));
+                        ch.go_to((scroller.x() + e.button.x),  (scroller.y() + e.button.y), now);
                         break;
                     case SDL_KEYUP:
                         switch (e.key.keysym.sym) {

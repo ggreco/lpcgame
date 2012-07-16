@@ -44,11 +44,13 @@ namespace Tmx
 	//-------------------------------------------------------------------------
 	class Tileset 
 	{
+        // real parse of a tileset element
+		void InnerParse(const TiXmlNode *tilesetNode);
 	public:
 		Tileset();
 		~Tileset();
 
-		// Parse a tileset element.
+		// Parse a tileset element, may load a file if tileset uses "source" instead of "name".
 		void Parse(const TiXmlNode *tilesetNode);
 
 		// Returns the global id of the first tile.
@@ -92,5 +94,7 @@ namespace Tmx
 		Tmx::Image* image;
 
 		std::vector< Tmx::Tile* > tiles;
+
+        std::string additional_path;
 	};
 };

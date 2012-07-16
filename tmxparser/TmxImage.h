@@ -39,14 +39,16 @@ namespace Tmx
 	class Image 
 	{
 	public:
-		Image();
+		Image(const std::string &p = "");
 		~Image();
 
 		// Parses an image element.
 		void Parse(const TiXmlNode *imageNode);
 
 		// Get the path to the file of the image (relative to the map)
-		const std::string &GetSource() const { return source; }
+		std::string GetSource() const { 
+           return path + source;
+        }
 
 		// Get the width of the image.
 		int GetWidth() const { return width; }
@@ -65,5 +67,6 @@ namespace Tmx
 		int height;
 		std::string transparent_color;
         void *data;
+        std::string path;
 	};
 };

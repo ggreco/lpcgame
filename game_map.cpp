@@ -78,7 +78,7 @@ int Map::
 navigation_map(int x, int y) const
 {
     if (x < 0 || y < 0 ||
-        x > navigation_width_ || y > navigation_height_)
+        x >= navigation_width_ || y >= navigation_height_)
         return 9;
     else 
         return navigation_map_[x + y * navigation_width_];

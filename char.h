@@ -14,7 +14,6 @@ public:
         return base_y() - 5;
     }
     Character(const std::string &xml); 
-    void do_step();
 };
 
 #endif

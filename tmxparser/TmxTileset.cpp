@@ -71,12 +71,10 @@ namespace Tmx
 		}
 	}
 
-	void Tileset::Parse(const TiXmlNode *tilesetNode) 
-	{
+    void Tileset::InnerParse(const TiXmlNode *tilesetNode)
+    {
 		const TiXmlElement *tilesetElem = tilesetNode->ToElement();
 
-		// Read all the attributes into local variables.
-		tilesetElem->Attribute("firstgid", &first_gid);
 		tilesetElem->Attribute("tilewidth", &tile_width);
 		tilesetElem->Attribute("tileheight", &tile_height);
 		tilesetElem->Attribute("margin", &margin);
@@ -89,7 +87,7 @@ namespace Tmx
 		
 		if (imageNode) 
 		{
-			image = new Image();
+			image = new Image(additional_path);
 			image->Parse(imageNode);
 		}
 
@@ -106,6 +104,54 @@ namespace Tmx
 
 			tileNode = tilesetNode->IterateChildren("tile", tileNode);
 		}
+    }
+
+	void Tileset::Parse(const TiXmlNode *tilesetNode) 
+	{
+		const TiXmlElement *tilesetElem = tilesetNode->ToElement();
+
+		// Read all the attributes into local variables.
+		tilesetElem->Attribute("firstgid", &first_gid);
+        
+        std::string source;
+        
+        if (const char *src = tilesetElem->Attribute("source"))
+            source = src;
+
+        // GG: Added support for external tilemaps
+        if (!source.empty()) {
+            std::cerr << "Loading external tileset " << source << '\n';
+            if (FILE *f = ::fopen(source.c_str(), "rb")) {
+                std::string text;
+                char buffer[1024];
+
+                while (!::feof(f)) {
+                    int len = ::fread(buffer, 1, sizeof(buffer), f);
+                    if (len > 0)
+                        text.append(buffer, len);
+                    else if (!::feof(f))
+                        break;
+                }
+                ::fclose(f);
+
+                if (!text.empty()) {
+                    TiXmlDocument doc;
+                    doc.Parse(text.c_str());
+
+                    std::string::size_type pos = source.find_last_of('/');
+                    if (pos != std::string::npos)
+                        additional_path = source.substr(0, pos + 1);
+
+                    if (!doc.Error())
+                        if (TiXmlNode *node = doc.FirstChild("tileset")) 
+                            InnerParse(node);
+               }
+            }
+            else
+                std::cerr << "Unable to open " << source << '\n';
+        }
+        else
+            InnerParse(tilesetNode);
 	}
 
 	const Tile *Tileset::GetTile(int index) const 

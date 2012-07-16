@@ -20,13 +20,13 @@ class AnimObj : public Object
     };
 
 
+    void set_direction(int, int, int, int, int, int);
     typedef std::map<int, SDL_Surface *> SheetMap;
     typedef SheetMap::const_iterator SheetCIt;
     SheetMap sheets_;
 protected:    
     AStarSearch<MapSearchNode> astar_;
     MapSearchNode *step_;
-    int delta_x_, delta_y_;
     typedef std::vector<Frame> FrameList;
     struct Anim {
         SDL_Surface *sheet;
@@ -57,6 +57,9 @@ protected:
             return y_ + it->second.frames[frame_].box.h;
         return y_;
     }    
+    int32_t last_;
+    double speed_;
+    double distance_, microstep_x_, microstep_y_;
 public:    
     AnimObj(const std::string &);
 
@@ -68,12 +71,14 @@ public:
     bool Set(const std::string &);
     std::string Get() { return actual_; }
 
+    // speed of the objects in pixels/sec
+    float speed();
     void blit(int x, int y);
 
     // movement
-    bool go_to(int x, int y);
+    bool go_to(int x, int y, uint32_t msec);
     bool moving() const { return step_ != NULL; }
-    virtual void do_step();
+    void do_step(uint32_t msec);
 };
 
 #endif

@@ -467,6 +467,14 @@ public: // methods
 
 		return NULL;
 	}
+    // Get a pointer to the next node without changing state
+	UserState *PeekSolutionNext()
+    {
+        if( m_CurrentSolutionNode && m_CurrentSolutionNode->child )
+            return &m_CurrentSolutionNode->child->m_UserState;
+
+        return NULL;
+    }
 	
 	// Get end node
 	UserState *GetSolutionEnd()
@@ -631,6 +639,7 @@ private: // methods
 		// delete the goal
 
 		FreeNode(m_Goal);
+        m_Start = NULL;
 	}
 
 

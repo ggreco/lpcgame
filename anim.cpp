@@ -2,25 +2,133 @@
 #include "tinyxml.h"
 #include "SDL_image.h"
 #include "game_map.h"
+#include <math.h>
 
 void AnimObj::
-do_step()
+set_direction(int sx, int sy, int next_x, int next_y, int tw, int th)
 {
-   if (step_) {
-       step_->PrintNodeInfo();
-       step_ = astar_.GetSolutionNext();
-   }
+/*    if (UserState *next = PeekSolutionNext()) {
+
+    }
+    else*/
+    {
+
+        next_x *= tw; next_x += tw/2;
+        next_y *= th; next_y += th/2;
+    }
+
+    distance_ = sqrt((sx  - next_x) * (sx - next_x) + (sy - next_y) * (sy - next_y));
+//    std::cerr << "Distance between (" << sx << ',' << sy << ") and (" << next_x << ',' << next_y << ") is " << distance_ << ".\n";
+
+    double delta_step = distance_ / speed_;
+    microstep_x_ = ((double)(next_x - sx)) / delta_step;
+    microstep_y_ = ((double)(next_y - sy)) / delta_step;
+
+    if (microstep_x_ > 0.0 && microstep_y_ > 0.0) {
+        if (microstep_x_ > microstep_y_)
+            Set("walk_right");
+        else 
+            Set("walk_down");
+    }
+    else if (microstep_x_ < 0.0 && microstep_y_ < 0.0) {
+        if (microstep_y_ > microstep_x_)
+            Set("walk_left");
+        else
+            Set("walk_up");
+    }
+    else if (microstep_x_ < 0.0 && microstep_y_ > 0.0) {
+        if (microstep_x_ < -microstep_y_)
+            Set("walk_left");
+        else
+            Set("walk_down");
+    }
+    else {
+        if (microstep_x_ > -microstep_y_)
+            Set("walk_right");
+        else
+            Set("walk_up");
+    }
+}
+
+void AnimObj::
+do_step(uint32_t now)
+{
+    if (!step_)
+        return;
+
+    int tw = MapSearchNode::RefMap->TileWidth(),
+        th = MapSearchNode::RefMap->TileHeight();
+
+    double delta = (now - last_) / 1000.0;
+    last_ = now;
+    int actual_x = base_x(),
+        actual_y = base_y();
+
+    if (distance_ <= 0.0) {    
+        step_ = astar_.GetSolutionNext();
+
+        std::cerr << "Next step:";
+
+        if (!step_) {
+            std::cerr << "GOAL REACHED\n";
+            // arrived!
+            if (microstep_x_ > 0 && microstep_y_ > 0) {
+                if (microstep_y_ > microstep_x_)
+                    Set("idle_down");
+                else 
+                    Set("idle_right");
+            }
+            else if (microstep_x_ < 0 && microstep_y_ < 0) {
+                if (microstep_y_ > microstep_x_)
+                    Set("idle_left");
+                else
+                    Set("idle_up");
+            }
+            else if (microstep_x_ < 0 && microstep_y_ > 0) {
+                if (microstep_x_ < -microstep_y_)
+                    Set("idle_left");
+                else
+                    Set("idle_down");
+            }
+            else if (microstep_x_ > -microstep_y_)
+                Set("idle_right");
+            else
+                Set("idle_up");
+
+            return;
+        }
+        step_->PrintNodeInfo();
+        set_direction(actual_x, actual_y,  step_->x, step_->y, tw, th);
+    }
+/*
+    std::cerr << "Dir: " << direction_ << " X:" << actual_x << " Y:" << actual_y << " d:" << delta
+              << " distance:"  << distance_ 
+              << " dx:" << microstep_x_ << " dy:" << microstep_y_ <<'\n';
+              */
+    distance_ -= delta * speed_;
+
+    /*
+    if we are arrived to the next step I force it to be in the EXACT position <- not needed
+    if (distance_ <= 0.0) {
+        x_ = step_->x * tw + tw/2 + actual_x - x_;
+        y_ = step_->y * th + th/2 + actual_y - y_;
+    }
+   */
+    x_ += delta * microstep_x_; 
+    y_ += delta * microstep_y_;
 }
 
 bool AnimObj::
-go_to(int x, int y)
+go_to(int x, int y, uint32_t msec)
 {
-    delta_x_ = 0;
-    delta_y_ = 0;
+    int tw = MapSearchNode::RefMap->TileWidth(),
+        th = MapSearchNode::RefMap->TileHeight();
+    
+    distance_ = 0.0;
     astar_.FreeSolutionNodes();
     astar_.EnsureMemoryFreed();
-    MapSearchNode ns(base_x() / MapSearchNode::RefMap->TileWidth(), base_y() / MapSearchNode::RefMap->TileHeight());
-    MapSearchNode ne(x / MapSearchNode::RefMap->TileWidth(), y / MapSearchNode::RefMap->TileHeight());
+    MapSearchNode ns(base_x() /tw , base_y() /th);
+    MapSearchNode ne(x / tw, y / th);
 
     astar_.SetStartAndGoalStates(ns, ne);
 
@@ -33,19 +141,31 @@ go_to(int x, int y)
     unsigned int SearchSteps = 0;
 
     do {
+        if (SearchSteps > 600) {
+            std::cerr << "Search interrupted. Did not find goal state\n";
+            astar_.CancelSearch();
+        }
         SearchState = astar_.SearchStep();
 
         SearchSteps++;
+
     } while( SearchState == AStarSearch<MapSearchNode>::SEARCH_STATE_SEARCHING );
 
-    if( SearchState == AStarSearch<MapSearchNode>::SEARCH_STATE_SUCCEEDED ) 
+    if( SearchState == AStarSearch<MapSearchNode>::SEARCH_STATE_SUCCEEDED ) {
         step_ = astar_.GetSolutionStart();
+        // always skip first step, it's the position we are in
+        step_ = astar_.GetSolutionNext();
+        set_direction(base_x(), base_y(), step_->x, step_->y, tw, th);
+    }
     else if( SearchState == AStarSearch<MapSearchNode>::SEARCH_STATE_FAILED ) 
     {
         std::cerr << "Search terminated. Did not find goal state\n";
         step_ = NULL;
     }
     std::cerr << "SearchSteps : " << SearchSteps << "\n";
+    last_ = msec;
+
+    return step_ != NULL;
 }
 
 bool AnimObj::
@@ -80,6 +200,11 @@ AnimObj::AnimObj(const std::string &xmlname) : frame_(0), step_(NULL)
 
    if (const TiXmlNode *n = baseNode->FirstChild("name")) 
        name_ = n->ToElement()->GetText();
+
+   if (const TiXmlNode *n = baseNode->FirstChild("speed")) 
+       speed_ = atof(n->ToElement()->GetText());
+   else
+       speed_ = 100.0f; // speed of 100 to objects with undefined speed
 
    for (const TiXmlNode *sheetNode = baseNode->FirstChild("sheet"); sheetNode; 
                          sheetNode = baseNode->IterateChildren("sheet", sheetNode)) {
