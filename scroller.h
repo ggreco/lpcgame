@@ -22,6 +22,7 @@ class Scroller
         background_ = SDL_CreateRGBSurface(SDL_SWSURFACE, video_.width() + tw_ * 2, video_.height() + th_ * 2, 
                             video_.format()->BitsPerPixel, video_.format()->Rmask,  
                             video_.format()->Gmask, video_.format()->Bmask,  video_.format()->Amask);
+    
         map_ = &map;
         map_->Render(background_, 0, 0);
     }
@@ -33,7 +34,7 @@ public:
         if (background_)
             SDL_FreeSurface(background_);
     }
-    void render() {
+    void render_background() {
         SDL_Rect src_rect = {x_ - map_x_, y_ - map_y_, video_.width(), video_.height()};
 
         if (src_rect.x < 0) 
@@ -41,6 +42,15 @@ public:
         if (src_rect.y < 0)
             src_rect.y = 0;
         video_.blit(background_, src_rect);
+    }
+    void render_foreground() {
+        SDL_Rect src_rect = {x_ - map_x_, y_ - map_y_, video_.width(), video_.height()};
+
+        if (src_rect.x < 0) 
+            src_rect.x = 0;
+        if (src_rect.y < 0)
+            src_rect.y = 0;
+        map_->RenderAbove(video_.surface(), map_x_/tw_, map_y_/th_,  map_x_ - x_, map_y_ - y_);
     }
 
     int x() const { return x_; }
@@ -68,7 +78,7 @@ public:
             need_render = true;
         }        
 
-        if (need_render)
+        if (need_render) 
             map_->Render(background_, map_x_/tw_, map_y_/th_);
     }
 };

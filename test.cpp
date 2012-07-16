@@ -6,8 +6,14 @@
 
 int main(int argc, char *argv[])
 {
-    if (argc != 2)
+    int x = 200, y = 200;
+    if (argc < 2)
         return -1;
+
+    if (argc >= 3)
+        x = atoi(argv[2]);
+    if (argc >=4)
+        y = atoi(argv[3]);
 
     Map map;
     MapSearchNode::RefMap = &map;
@@ -24,7 +30,7 @@ int main(int argc, char *argv[])
         int msec_per_frame = 20;
         uint32_t wanted = SDL_GetTicks();
 
-        ch.position(200, 200);
+        ch.position(x, y);
 
         for (;;) {
             uint32_t now = SDL_GetTicks();
@@ -42,8 +48,9 @@ int main(int argc, char *argv[])
 
             if (now <= wanted) {
                 // frame rendering
-                scroller.render();
+                scroller.render_background();
                 ch.blit(scroller.x(), scroller.y());
+                scroller.render_foreground();
                 video.flip();
             }
 

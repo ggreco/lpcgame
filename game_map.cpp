@@ -59,7 +59,7 @@ build_navigation_map()
             for (int y = 0; y < layer->GetHeight(); ++y) {
                 const Tmx::MapTile &tile =  layer->GetTile(x, y);
 
-                if(tile.id == 0)
+                if(tile.tilesetId == -1)
                     continue;
 
                 if (const Tmx::Tileset *tileset = map_.GetTileset(tile.tilesetId)) {
@@ -111,9 +111,10 @@ void Map::dump_screen_map() const
     std::cerr << os.str();
 }
 
-void Map::Render(SDL_Surface *dest, int startx, int starty)
+void Map::Render(SDL_Surface *dest, int startx, int starty, bool above)
 {
-    SDL_FillRect(dest, NULL, 0);
+    if (!above)
+        SDL_FillRect(dest, NULL, 0);
 
     for (int i = 0; i < map_.GetNumLayers(); ++i) 
     {
@@ -122,13 +123,27 @@ void Map::Render(SDL_Surface *dest, int startx, int starty)
 
 //        std::cerr << "Layer " << i << ", size " << layer->GetWidth() << 'x' << layer->GetHeight() << ", rendering from " << startx << ',' << starty << "\n";
 
+
+        // check if is an "above" layer
+        const Tmx::PropertySet &props = layer->GetProperties();
+        if ( props.HasProperty("target")) {
+            if (props.GetLiteralProperty("target") == "above") {
+                if (!above)
+                    continue;
+            }
+            else if (above)
+                continue;
+        }
+        else if (above)
+           continue;
+
         for (int x = startx; x < layer->GetWidth(); ++x) 
         {
             for (int y = starty; y < layer->GetHeight(); ++y) 
             {
                 const Tmx::MapTile &tile =  layer->GetTile(x, y);
 
-                if(tile.id == 0)
+                if(tile.tilesetId == -1)
                     continue;
 
                 const Tmx::Tileset *tileset = map_.GetTileset(tile.tilesetId);
@@ -154,6 +169,61 @@ void Map::Render(SDL_Surface *dest, int startx, int starty)
                 
                 destRect.x = (x - startx) * tileset->GetTileWidth();
                 destRect.y = (y - starty) * tileset->GetTileHeight(); 
+
+                SDL_BlitSurface( (SDL_Surface*)tileset->GetImage()->GetData(), &rect, dest, &destRect);
+            }
+
+        }
+    }
+}
+
+void Map::RenderAbove(SDL_Surface *dest, int startx, int starty, int offset_x, int offset_y)
+{
+    for (int i = 0; i < map_.GetNumLayers(); ++i) 
+    {
+        // Get a layer.
+        const Tmx::Layer *layer = map_.GetLayer(i);
+
+        // check if is an "above" layer
+        const Tmx::PropertySet &props = layer->GetProperties();
+        if ( !props.HasProperty("target")) 
+            continue;
+
+        if (props.GetLiteralProperty("target") != "above")
+            continue;
+        
+        for (int x = startx; x < layer->GetWidth(); ++x) 
+        {
+            for (int y = starty; y < layer->GetHeight(); ++y) 
+            {
+                const Tmx::MapTile &tile =  layer->GetTile(x, y);
+
+                if(tile.tilesetId == -1)
+                    continue;
+
+                const Tmx::Tileset *tileset = map_.GetTileset(tile.tilesetId);
+
+                if ((y - starty) * tileset->GetTileHeight() >= dest->h - offset_y ||
+                    (x - startx) * tileset->GetTileWidth() >= dest->w - offset_x )
+                    break;
+
+                if (!tileset->GetImage()->GetData())
+                    if (!load_tileset(tileset)) {
+                        std::cerr << "Unable to load " << path_ << tileset->GetImage()->GetSource() << "\n";
+                        continue;
+                    }
+
+                int tileset_col = (tile.id % (tileset->GetImage()->GetWidth() / tileset->GetTileWidth()));
+                int tileset_row = (tile.id / (tileset->GetImage()->GetWidth() / tileset->GetTileWidth()));
+
+                SDL_Rect rect, destRect;
+                rect.x = (tileset->GetMargin() + (tileset->GetTileWidth() + tileset->GetSpacing()) * tileset_col);
+                rect.y = (tileset->GetMargin() + (tileset->GetTileHeight() + tileset->GetSpacing()) * tileset_row);
+                rect.w = tileset->GetTileWidth();
+                rect.h = tileset->GetTileHeight();
+                
+                destRect.x = (x - startx) * tileset->GetTileWidth() + offset_x;
+                destRect.y = (y - starty) * tileset->GetTileHeight() + offset_y; 
 
                 SDL_BlitSurface( (SDL_Surface*)tileset->GetImage()->GetData(), &rect, dest, &destRect);
             }

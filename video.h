@@ -18,6 +18,7 @@ public:
     int width() { return screen_->w; }
     int height() { return screen_->h; }
     SDL_PixelFormat *format() { return screen_->format; }
+    SDL_Surface *surface() { return screen_; }
     void blit(SDL_Surface *b, SDL_Rect &src) {
         SDL_BlitSurface(b, &src, screen_, NULL);
     }

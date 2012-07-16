@@ -37,6 +37,7 @@ public:
     int navigation_map(int, int) const;
     void dump_screen_map() const;
     bool walkable(int, int) const;
-    void Render(SDL_Surface *, int, int);
+    void Render(SDL_Surface *, int, int, bool above = false);
+    void RenderAbove(SDL_Surface *, int, int, int, int);
 };
 #endif
