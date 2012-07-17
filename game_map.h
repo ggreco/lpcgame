@@ -17,6 +17,8 @@ class Map
 
     bool load_tileset(const Tmx::Tileset *);
     void build_navigation_map();
+    void render_layer(const Tmx::Layer *layer, SDL_Surface *dest, int startx, int offset_x, int starty, int offset_y);
+
 public:    
     Map() : navigation_map_(NULL), navigation_height_(0), navigation_width_(0) {}
     ~Map() { if (navigation_map_) ::free(navigation_map_); }
@@ -34,6 +36,7 @@ public:
         build_navigation_map();
         return true;
     }
+    bool SpawnPoint(int &x, int &y);
     int navigation_map(int, int) const;
     void dump_screen_map() const;
     bool walkable(int, int) const;

@@ -110,6 +110,23 @@ void Map::dump_screen_map() const
     }
     std::cerr << os.str();
 }
+bool Map::
+SpawnPoint(int &x, int &y)
+{
+    const Tmx::PropertySet &props = map_.GetProperties();
+
+    if (!props.HasProperty("spawn_point"))
+        return false;
+    std::string pt = props.GetLiteralProperty("spawn_point");
+    std::string::size_type s = pt.find_first_of(',');
+
+    if (s == std::string::npos)
+        return false;
+
+    x = atoi(pt.substr(0, s).c_str()) * TileWidth();
+    y = atoi(pt.substr(s + 1).c_str()) * TileHeight();
+    return true;
+}
 
 void Map::Render(SDL_Surface *dest, int startx, int starty, bool above)
 {
@@ -137,50 +154,51 @@ void Map::Render(SDL_Surface *dest, int startx, int starty, bool above)
         else if (above)
            continue;
 
-        for (int x = startx; x < layer->GetWidth(); ++x) 
-        {
-            for (int y = starty; y < layer->GetHeight(); ++y) 
-            {
-                const Tmx::MapTile &tile =  layer->GetTile(x, y);
+        render_layer(layer, dest, startx, 0, starty, 0);
+    }
+}
 
-                if(tile.tilesetId == -1)
+void Map::
+render_layer(const Tmx::Layer *layer, SDL_Surface *dest, int startx, int offset_x, int starty, int offset_y)
+{
+    int max_x = std::min<int>(layer->GetWidth(), (dest->w  - offset_x) / TileWidth()  + startx + 2),
+        max_y = std::min<int>(layer->GetHeight(), dest->h / TileHeight()  + starty + 2);
+
+    for (int x = startx; x < max_x; ++x) {
+        for (int y = starty; y < max_y; ++y) {
+            const Tmx::MapTile &tile =  layer->GetTile(x, y);
+
+            if(tile.tilesetId == -1)
+                continue;
+
+            const Tmx::Tileset *tileset = map_.GetTileset(tile.tilesetId);
+
+            if (!tileset->GetImage()->GetData())
+                if (!load_tileset(tileset)) {
+                    std::cerr << "Unable to load " << path_ << tileset->GetImage()->GetSource() << "\n";
                     continue;
+                }
 
-                const Tmx::Tileset *tileset = map_.GetTileset(tile.tilesetId);
+            int tileset_col = (tile.id % (tileset->GetImage()->GetWidth() / tileset->GetTileWidth()));
+            int tileset_row = (tile.id / (tileset->GetImage()->GetWidth() / tileset->GetTileWidth()));
 
-                if ((y - starty) * tileset->GetTileHeight() >= dest->h ||
-                    (x - startx) * tileset->GetTileWidth() >= dest->w)
-                    break;
+            SDL_Rect rect, destRect;
+            rect.x = (tileset->GetMargin() + (tileset->GetTileWidth() + tileset->GetSpacing()) * tileset_col);
+            rect.y = (tileset->GetMargin() + (tileset->GetTileHeight() + tileset->GetSpacing()) * tileset_row);
+            rect.w = tileset->GetTileWidth();
+            rect.h = tileset->GetTileHeight();
 
-                if (!tileset->GetImage()->GetData())
-                    if (!load_tileset(tileset)) {
-                        std::cerr << "Unable to load " << path_ << tileset->GetImage()->GetSource() << "\n";
-                        continue;
-                    }
+            destRect.x = (x - startx) * tileset->GetTileWidth() + offset_x;
+            destRect.y = (y - starty) * tileset->GetTileHeight() + offset_y; 
 
-                int tileset_col = (tile.id % (tileset->GetImage()->GetWidth() / tileset->GetTileWidth()));
-                int tileset_row = (tile.id / (tileset->GetImage()->GetWidth() / tileset->GetTileWidth()));
-
-                SDL_Rect rect, destRect;
-                rect.x = (tileset->GetMargin() + (tileset->GetTileWidth() + tileset->GetSpacing()) * tileset_col);
-                rect.y = (tileset->GetMargin() + (tileset->GetTileHeight() + tileset->GetSpacing()) * tileset_row);
-                rect.w = tileset->GetTileWidth();
-                rect.h = tileset->GetTileHeight();
-                
-                destRect.x = (x - startx) * tileset->GetTileWidth();
-                destRect.y = (y - starty) * tileset->GetTileHeight(); 
-
-                SDL_BlitSurface( (SDL_Surface*)tileset->GetImage()->GetData(), &rect, dest, &destRect);
-            }
-
+            SDL_BlitSurface( (SDL_Surface*)tileset->GetImage()->GetData(), &rect, dest, &destRect);
         }
     }
 }
 
 void Map::RenderAbove(SDL_Surface *dest, int startx, int starty, int offset_x, int offset_y)
 {
-    for (int i = 0; i < map_.GetNumLayers(); ++i) 
-    {
+    for (int i = 0; i < map_.GetNumLayers(); ++i) {
         // Get a layer.
         const Tmx::Layer *layer = map_.GetLayer(i);
 
@@ -191,44 +209,8 @@ void Map::RenderAbove(SDL_Surface *dest, int startx, int starty, int offset_x, i
 
         if (props.GetLiteralProperty("target") != "above")
             continue;
-        
-        for (int x = startx; x < layer->GetWidth(); ++x) 
-        {
-            for (int y = starty; y < layer->GetHeight(); ++y) 
-            {
-                const Tmx::MapTile &tile =  layer->GetTile(x, y);
-
-                if(tile.tilesetId == -1)
-                    continue;
-
-                const Tmx::Tileset *tileset = map_.GetTileset(tile.tilesetId);
-
-                if ((y - starty) * tileset->GetTileHeight() >= dest->h - offset_y ||
-                    (x - startx) * tileset->GetTileWidth() >= dest->w - offset_x )
-                    break;
-
-                if (!tileset->GetImage()->GetData())
-                    if (!load_tileset(tileset)) {
-                        std::cerr << "Unable to load " << path_ << tileset->GetImage()->GetSource() << "\n";
-                        continue;
-                    }
-
-                int tileset_col = (tile.id % (tileset->GetImage()->GetWidth() / tileset->GetTileWidth()));
-                int tileset_row = (tile.id / (tileset->GetImage()->GetWidth() / tileset->GetTileWidth()));
-
-                SDL_Rect rect, destRect;
-                rect.x = (tileset->GetMargin() + (tileset->GetTileWidth() + tileset->GetSpacing()) * tileset_col);
-                rect.y = (tileset->GetMargin() + (tileset->GetTileHeight() + tileset->GetSpacing()) * tileset_row);
-                rect.w = tileset->GetTileWidth();
-                rect.h = tileset->GetTileHeight();
-                
-                destRect.x = (x - startx) * tileset->GetTileWidth() + offset_x;
-                destRect.y = (y - starty) * tileset->GetTileHeight() + offset_y; 
-
-                SDL_BlitSurface( (SDL_Surface*)tileset->GetImage()->GetData(), &rect, dest, &destRect);
-            }
-
-        }
+       
+        render_layer(layer, dest, startx, offset_x, starty, offset_y);
     }
 }
 

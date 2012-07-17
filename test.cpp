@@ -21,6 +21,9 @@ int main(int argc, char *argv[])
     if (!map.Load(argv[1]))
         return -2;
 
+    if (map.SpawnPoint(x, y))
+        std::cerr << "Using map defined spawn point: " << x << ',' << y << '\n';
+
     try {
         Video video(640, 480);
         Scroller scroller(video, map);
