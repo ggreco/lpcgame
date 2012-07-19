@@ -1,5 +1,6 @@
 #include "obj.h"
 #include "SDL_image.h"
+#include <math.h>
 
 Video *Object::video_ = NULL;
 
@@ -12,6 +13,11 @@ StaticObject(const std::string &name) {
 
     bitmap_ = SDL_DisplayFormatAlpha(s);
     SDL_FreeSurface(s);
+}
+
+int Object::
+distance(int x, int y) const {
+    return sqrt((x_ - x) * (x_ - x) + (y_ - y) * (y_ - y));
 }
 
 // low level blitting code used by every object

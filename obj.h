@@ -13,6 +13,8 @@ public:
     static void Set(Video &v) { video_ = &v; }
     int x() const { return x_; }
     int y() const { return y_; }
+    int distance(int x, int y) const;
+    int distance(Object *o) const { return distance(o->x(), o->y()); }
     void position(int x, int y) { x_ = x; y_ = y; }
     std::pair<int, int> position() const { return std::make_pair(x_, y_); }
 

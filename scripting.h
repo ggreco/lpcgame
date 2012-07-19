@@ -19,6 +19,11 @@ class ScriptEngine
     static int iteration(lua_State *s);
     static int start(lua_State *s);
     ScriptEngine();
+    void register_class(const char *name, const luaL_Reg *methods) {
+        luaL_register(state_, name, methods);  
+        lua_pushvalue(state_,-1);
+        lua_setfield(state_, -2, "__index");
+    }
 public:
     void engine(Engine &e) { engine_ = &e; }
     Engine &engine() { return *engine_; }

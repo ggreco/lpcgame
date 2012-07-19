@@ -14,7 +14,7 @@ class Map
     std::string path_;
     char *navigation_map_;
     int navigation_width_, navigation_height_;
-
+   
     bool load_tileset(const Tmx::Tileset *);
     void build_navigation_map();
     void render_layer(const Tmx::Layer *layer, SDL_Surface *dest, int startx, int offset_x, int starty, int offset_y);
@@ -42,5 +42,7 @@ public:
     bool walkable(int, int) const;
     void Render(SDL_Surface *, int, int, bool above = false);
     void RenderAbove(SDL_Surface *, int, int, int, int);
+    int map_width() const { return navigation_width_ * TileWidth(); }
+    int map_height() const { return navigation_height_ * TileHeight(); }
 };
 #endif
