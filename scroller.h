@@ -13,9 +13,10 @@ class Scroller
     Video &video_;
     int x_, y_; // render position from the map, set through move
 
-    void init(Map &map) {
-        tw_ = map.TileWidth();
-        th_ = map.TileHeight();
+public:
+    void refresh() {
+        tw_ = map_->TileWidth();
+        th_ = map_->TileHeight();
         if (background_)
             SDL_FreeSurface(background_);
 
@@ -23,12 +24,10 @@ class Scroller
                             video_.format()->BitsPerPixel, video_.format()->Rmask,  
                             video_.format()->Gmask, video_.format()->Bmask,  video_.format()->Amask);
     
-        map_ = &map;
         map_->Render(background_, 0, 0);
     }
-public:
-    Scroller(Video &v, Map &m) : map_x_(0), map_y_(0), background_(NULL), video_(v), x_(0), y_(0) {
-        init(m);
+    
+    Scroller(Video &v, Map &m) : map_x_(0), map_y_(0), map_(&m), background_(NULL), video_(v), x_(0), y_(0) {
     }
     ~Scroller() {
         if (background_)
