@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<character>
+    <name>Ghost</name>
+    <speed>130</speed>
+    <life>100</life>
+    <sheet id="1">
+        <layer id="1">ghost.png</layer>
+    </sheet>
+    <anim id="idle_left" sheet="1">
+        <frame id="0" x="0"  y="46" w="40" h="46" time="200" />
+        <frame id="1" x="40" y="46" w="40" h="46" time="200" />
+        <frame id="2" x="80" y="46" w="40" h="46" time="200" />
+        <frame id="3" x="40" y="46" w="40" h="46" time="200" />
+    </anim>
+    <anim id="idle_right" sheet="1">
+        <frame id="0" x="0"  y="138" w="40" h="46" time="200" />
+        <frame id="1" x="40" y="138" w="40" h="46" time="200" />
+        <frame id="2" x="80" y="138" w="40" h="46" time="200" />
+        <frame id="3" x="40" y="138" w="40" h="46" time="200" />
+    </anim>
+    <anim id="idle_up" sheet="1">
+        <frame id="0" x="0"  y="0" w="40" h="46" time="200" />
+        <frame id="1" x="40" y="0" w="40" h="46" time="200" />
+        <frame id="2" x="80" y="0" w="40" h="46" time="200" />
+        <frame id="3" x="40" y="0" w="40" h="46" time="200" />
+    </anim>
+    <anim id="idle_down" sheet="1">
+        <frame id="0" x="0"  y="92" w="40" h="46" time="200" />
+        <frame id="1" x="40" y="92" w="40" h="46" time="200" />
+        <frame id="2" x="80" y="92" w="40" h="46" time="200" />
+        <frame id="3" x="40" y="92" w="40" h="46" time="200" />
+    </anim>
+    <anim id="walk_left" sheet="1">
+        <frame id="0" x="0"  y="46" w="40" h="46" time="100" />
+        <frame id="1" x="40" y="46" w="40" h="46" time="100" />
+        <frame id="2" x="80" y="46" w="40" h="46" time="100" />
+    </anim>
+    <anim id="walk_right" sheet="1">
+        <frame id="0" x="0"  y="138" w="40" h="46" time="100" />
+        <frame id="1" x="40" y="138" w="40" h="46" time="100" />
+        <frame id="2" x="80" y="138" w="40" h="46" time="100" />
+    </anim>
+    <anim id="walk_up" sheet="1">
+        <frame id="0" x="0"  y="0" w="40" h="46" time="100" />
+        <frame id="1" x="40" y="0" w="40" h="46" time="100" />
+        <frame id="2" x="80" y="0" w="40" h="46" time="100" />
+    </anim>
+    <anim id="walk_down" sheet="1">
+        <frame id="0" x="0"  y="92" w="40" h="46" time="100" />
+        <frame id="1" x="40" y="92" w="40" h="46" time="100" />
+        <frame id="2" x="80" y="92" w="40" h="46" time="100" />
+    </anim>
+</character>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<character>
+    <name>Slime</name>
+    <speed>60</speed>
+    <life>150</life>
+    <sheet id="1">
+        <layer id="1">slime.png</layer>
+    </sheet>
+    <anim id="idle_left" sheet="1">
+        <frame id="0" x="0"  y="32" w="32" h="32" time="300" />
+    </anim>
+    <anim id="idle_right" sheet="1">
+        <frame id="0" x="0"  y="96" w="32" h="32" time="300" />
+    </anim>
+    <anim id="idle_up" sheet="1">
+        <frame id="0" x="0"  y="0" w="32" h="32" time="300" />
+    </anim>
+    <anim id="idle_down" sheet="1">
+        <frame id="0" x="0"  y="64" w="32" h="32" time="300" />
+    </anim>
+    <anim id="walk_left" sheet="1">
+        <frame id="0" x="0"  y="32" w="32" h="32" time="100" />
+        <frame id="1" x="32" y="32" w="32" h="32" time="100" />
+        <frame id="2" x="64" y="32" w="32" h="32" time="100" />
+        <frame id="3" x="32" y="32" w="32" h="32" time="100" />
+    </anim>
+    <anim id="walk_right" sheet="1">
+        <frame id="0" x="0"  y="96" w="32" h="32" time="100" />
+        <frame id="1" x="32" y="96" w="32" h="32" time="100" />
+        <frame id="2" x="64" y="96" w="32" h="32" time="100" />
+        <frame id="3" x="32" y="32" w="32" h="32" time="100" />
+    </anim>
+    <anim id="walk_up" sheet="1">
+        <frame id="0" x="0"  y="0" w="32" h="32" time="100" />
+        <frame id="1" x="32" y="0" w="32" h="32" time="100" />
+        <frame id="2" x="64" y="0" w="32" h="32" time="100" />
+        <frame id="3" x="32" y="32" w="32" h="32" time="100" />
+    </anim>
+    <anim id="walk_down" sheet="1">
+        <frame id="0" x="0"  y="64" w="32" h="32" time="100" />
+        <frame id="1" x="32" y="64" w="32" h="32" time="100" />
+        <frame id="2" x="64" y="64" w="32" h="32" time="100" />
+        <frame id="3" x="32" y="32" w="32" h="32" time="100" />
+    </anim>
+</character>

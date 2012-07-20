@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 // Character bindings
-static int L_newHero(lua_State *s) {
+static int L_newChar(lua_State *s) {
     const char *name = lua_tostring(s, 1);
     int x  = luaL_optint(s, 2, -1), y  = luaL_optint(s, 3, -1);
     std::cerr << "Creating new character with lua from " << name << " at (" << x << ',' << y << ")\n";
@@ -21,38 +21,38 @@ static int L_newHero(lua_State *s) {
     return 1;
 }
 
-static int L_heroPosition(lua_State *s) {
+static int L_charPosition(lua_State *s) {
     Character** p = (Character**) lua_touserdata(s, 1);
     if (*p) (*p)->position(lua_tonumber(s, 2), lua_tonumber(s, 3));
     return 0;
 }
-static int L_heroMoving(lua_State *s) {
+static int L_charMoving(lua_State *s) {
     Character** p = (Character**) lua_touserdata(s, 1);
     lua_pushboolean(s, *p ? (*p)->moving() : false);
     return 1;
 }
-static int L_heroX(lua_State *s) {
+static int L_charX(lua_State *s) {
     Character** p = (Character**) lua_touserdata(s, 1);
     lua_pushnumber(s, *p ? (*p)->x() : -1);
     return 1;
 }
-static int L_heroY(lua_State *s) {
+static int L_charY(lua_State *s) {
     Character** p = (Character**) lua_touserdata(s, 1);
     lua_pushnumber(s, *p ? (*p)->y() : -1);
     return 1;
 }
-static int L_heroGoto(lua_State *s) {
+static int L_charGoto(lua_State *s) {
     Character** p = (Character**) lua_touserdata(s, 1);
     if (*p) (*p)->go_to(lua_tonumber(s, 2), lua_tonumber(s, 3), SDL_GetTicks());
     return 0;
 }
-static int L_heroDistance2(lua_State *s) {
+static int L_charDistance2(lua_State *s) {
     Character** p = (Character**) lua_touserdata(s, 1);
     int x  = luaL_optint(s, 2, -1), y  = luaL_optint(s, 3, -1);
     lua_pushnumber(s, (*p && x != -1 && y != -1) ? (*p)->distance(x, y) : -1);
     return 1;
 }
-static int L_heroDistance(lua_State *s) {
+static int L_charDistance(lua_State *s) {
     Character** p = (Character**) lua_touserdata(s, 1);
     Character** j = (Character**) lua_touserdata(s, 2);
     lua_pushnumber(s, (*p && *j) ? (*p)->distance(*j) : -1);
@@ -89,14 +89,14 @@ static int L_set_hero(lua_State *s) {
     return 0;
 }
 static const luaL_Reg h_methods[] = {
-    {"new", L_newHero},
-    {"position", L_heroPosition},
-    {"x", L_heroX},
-    {"y", L_heroY},
-    {"moving", L_heroMoving},
-    {"goto", L_heroGoto},
-    {"distance_from_obj", L_heroDistance},
-    {"distance", L_heroDistance2},
+    {"new", L_newChar},
+    {"set_position", L_charPosition},
+    {"x", L_charX},
+    {"y", L_charY},
+    {"moving", L_charMoving},
+    {"goto", L_charGoto},
+    {"distance_from", L_charDistance},
+    {"distance", L_charDistance2},
     {NULL, NULL}
 };
 
