@@ -67,10 +67,10 @@ do_step(uint32_t now)
     if (distance_ <= 0.0) {    
         step_ = astar_.GetSolutionNext();
 
-        std::cerr << "Next step:";
+//        std::cerr << "Next step:";
 
         if (!step_) {
-            std::cerr << "GOAL REACHED\n";
+//            std::cerr << "GOAL REACHED\n";
             // arrived!
             if (microstep_x_ > 0 && microstep_y_ > 0) {
                 if (microstep_y_ > microstep_x_)
@@ -97,7 +97,7 @@ do_step(uint32_t now)
 
             return;
         }
-        step_->PrintNodeInfo();
+//        step_->PrintNodeInfo();
         set_direction(actual_x, actual_y,  step_->x, step_->y, tw, th);
     }
 /*
@@ -132,17 +132,19 @@ go_to(int x, int y, uint32_t msec)
 
     astar_.SetStartAndGoalStates(ns, ne);
 
+    /*
     std::cerr << "Start: ";
     ns.PrintNodeInfo();
     std::cerr << "End: ";
     ne.PrintNodeInfo();
+    */
 
     unsigned int SearchState;
     unsigned int SearchSteps = 0;
 
     do {
         if (SearchSteps > 600) {
-            std::cerr << "Search interrupted. Did not find goal state\n";
+//            std::cerr << "Search interrupted. Did not find goal state\n";
             astar_.CancelSearch();
         }
         SearchState = astar_.SearchStep();
@@ -155,14 +157,16 @@ go_to(int x, int y, uint32_t msec)
         step_ = astar_.GetSolutionStart();
         // always skip first step, it's the position we are in
         step_ = astar_.GetSolutionNext();
-        set_direction(base_x(), base_y(), step_->x, step_->y, tw, th);
+
+        if (step_)
+            set_direction(base_x(), base_y(), step_->x, step_->y, tw, th);
     }
     else if( SearchState == AStarSearch<MapSearchNode>::SEARCH_STATE_FAILED ) 
     {
-        std::cerr << "Search terminated. Did not find goal state\n";
+//        std::cerr << "Search terminated. Did not find goal state\n";
         step_ = NULL;
     }
-    std::cerr << "SearchSteps : " << SearchSteps << "\n";
+//    std::cerr << "SearchSteps : " << SearchSteps << "\n";
     last_ = msec;
 
     return step_ != NULL;
