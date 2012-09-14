@@ -24,6 +24,7 @@ class AnimObj : public Object
     typedef std::map<int, SDL_Surface *> SheetMap;
     typedef SheetMap::const_iterator SheetCIt;
     SheetMap sheets_;
+    void parse_animations(const TiXmlNode *);
 protected:    
     AStarSearch<MapSearchNode> astar_;
     MapSearchNode *step_;

@@ -189,6 +189,45 @@ Set(const std::string &anim)
    return true;
 }
 
+void AnimObj::
+parse_animations(const TiXmlNode *baseNode)
+{
+   for (const TiXmlNode *animNode = baseNode->FirstChild("anim"); animNode;
+                         animNode = baseNode->IterateChildren("anim", animNode)) {
+       int s;
+       const TiXmlElement* e = animNode->ToElement();
+       Anim anim;
+       anim.name = e->Attribute("id");
+       e->Attribute("sheet", &s);
+      
+       SheetCIt it = sheets_.find(s);
+       if (it == sheets_.end()) 
+           throw std::string("Unavailable sheet for animation " + anim.name);
+      
+       anim.sheet = it->second;
+       const TiXmlNode *frameNode = animNode->FirstChild("frame");
+       while (frameNode) {
+           Frame frame;
+           const TiXmlElement *e = frameNode->ToElement();
+           int x, y, w, h;
+           e->Attribute("x", &x);
+           e->Attribute("y", &y);
+           e->Attribute("w", &w);
+           e->Attribute("h", &h);
+           frame.box.x = x;
+           frame.box.y = y;
+           frame.box.w = w;
+           frame.box.h = h;
+           e->Attribute("time", &frame.persistence);
+           anim.frames.push_back(frame);
+           frameNode = animNode->IterateChildren("frame", frameNode);
+       }
+       animations_[anim.name] = anim;
+       if (actual_.empty())
+           actual_ = anim.name;
+   }
+}
+
 AnimObj::AnimObj(const std::string &xmlname) : frame_(0), step_(NULL)
 {
    TiXmlDocument doc(xmlname);
@@ -234,43 +273,22 @@ AnimObj::AnimObj(const std::string &xmlname) : frame_(0), step_(NULL)
       
    }
 
-   for (const TiXmlNode *animNode = baseNode->FirstChild("anim"); animNode;
-                         animNode = baseNode->IterateChildren("anim", animNode)) {
-       int s;
-       const TiXmlElement* e = animNode->ToElement();
-       Anim anim;
-       anim.name = e->Attribute("id");
-       e->Attribute("sheet", &s);
-      
-       SheetCIt it = sheets_.find(s);
-       if (it == sheets_.end()) 
-           throw std::string("Unavailable sheet for animation " + anim.name);
-      
-       anim.sheet = it->second;
-       const TiXmlNode *frameNode = animNode->FirstChild("frame");
-       while (frameNode) {
-           Frame frame;
-           const TiXmlElement *e = frameNode->ToElement();
-           int x, y, w, h;
-           e->Attribute("x", &x);
-           e->Attribute("y", &y);
-           e->Attribute("w", &w);
-           e->Attribute("h", &h);
-           frame.box.x = x;
-           frame.box.y = y;
-           frame.box.w = w;
-           frame.box.h = h;
-           e->Attribute("time", &frame.persistence);
-           anim.frames.push_back(frame);
-           frameNode = animNode->IterateChildren("frame", frameNode);
+   // for each "animation" instance execute the parse of the file contained in the tag src
+   for (const TiXmlNode *n = baseNode->FirstChild("animation"); n; n = baseNode->IterateChildren("animation", n)) {
+       const TiXmlElement* e = n->ToElement();
+
+       std::string name = e->Attribute("src");
+
+       TiXmlDocument anim_doc(name);
+       if (anim_doc.LoadFile()) {
+            if (TiXmlNode *an = anim_doc.FirstChild("animation"))
+                parse_animations(an);
        }
-       animations_[anim.name] = anim;
-       if (actual_.empty())
-           actual_ = anim.name;
-
-       std::cerr << "Loaded animation " << anim.name << " with " << anim.frames.size() << " frames.\n";
    }
+   // executing the parse of the local animations
+   parse_animations(baseNode);
 
+   std::cerr << "Loaded " << animations_.size() << " animations for " << xmlname << '\n';
    next_frame_ = SDL_GetTicks();
 }
 
