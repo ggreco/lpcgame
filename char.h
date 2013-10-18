@@ -13,6 +13,8 @@ public:
     int feet_y() const {
         return base_y() - 5;
     }
+    int sort_y() const { return feet_y(); }
+
     Character(const std::string &xml); 
 };
 

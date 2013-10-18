@@ -15,6 +15,17 @@ StaticObject(const std::string &name) {
     SDL_FreeSurface(s);
 }
 
+bool Object::
+on_screen(const SDL_Rect &rect, int mapx, int mapy) const {
+    if (mapx < (x_ - rect.w - video_->width()) ||
+        mapy < (y_ - rect.h - video_->height()) ||
+        mapx > (x_ + rect.w) ||
+        mapy > (y_ + rect.h))
+        return false;
+
+    return true;
+}
+
 int Object::
 distance(int x, int y) const {
     return sqrt((x_ - x) * (x_ - x) + (y_ - y) * (y_ - y));
@@ -22,14 +33,7 @@ distance(int x, int y) const {
 
 // low level blitting code used by every object
 void Object::
-lowblit(SDL_Surface *src, SDL_Rect rect, int mapx, int mapy) {
-// do not render if not visible
-    if (mapx < (x_ - rect.w - video_->width()) ||
-        mapy < (y_ - rect.h - video_->height()) ||
-        mapx > (x_ + rect.w) ||
-        mapy > (y_ + rect.h))
-        return;
-
+lowblit(SDL_Surface *src, SDL_Rect rect, int mapx, int mapy) const {
     int posx = x_ - mapx, posy = y_ - mapy;
 
     // check if we render the whole object or only a piece of it

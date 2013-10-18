@@ -28,15 +28,28 @@ iteration()
 
     // wait some time
     if (wanted_ > (now + 2)) {
-        SDL_Delay(wanted_ - now);
+        SDL_Delay(wanted_ - now - 1);
     }
 
     if (now <= wanted_) {
         // frame rendering, first the map
         scroller_.render_background();
-        // then the object
-        for (std::set<Object *>::const_iterator it = objs_.begin(); it != objs_.end(); ++it)
-            (*it)->blit(scroller_.x(), scroller_.y());
+        // then the objects, in y ascending order
+        std::multimap<int, Object *> objs;
+
+        // here we update the animations and choose what frames are suitable to be displayed
+        for (std::set<Object *>::const_iterator it = objs_.begin(); it != objs_.end(); ++it) {
+            // we update the animation step of every object in the scene
+            (*it)->update_animation(now);
+            // but we append to the drawing list only the ones that are on the screen
+            if ((*it)->on_screen(scroller_.x(), scroller_.y()))
+                objs.insert(std::make_pair((*it)->sort_y(), *it));
+        }
+
+        // here we blit frames in ascending Y order
+        for (std::multimap<int, Object *>::const_iterator it = objs.begin(); it != objs.end(); ++it)
+            it->second->blit(scroller_.x(), scroller_.y());
+
         // and finally the overlay objects
         scroller_.render_foreground();
 

@@ -74,8 +74,10 @@ public:
 
     // speed of the objects in pixels/sec
     float speed();
-    void blit(int x, int y);
-
+    void blit(int x, int y) const;
+    void update_animation(uint32_t ts);
+    bool on_screen(int mapx, int mapy) const;
+    virtual int sort_y() const { return base_y(); }
     // movement
     bool go_to(int x, int y, uint32_t msec);
     bool moving() const { return step_ != NULL; }

@@ -292,23 +292,37 @@ AnimObj::AnimObj(const std::string &xmlname) : frame_(0), step_(NULL)
    next_frame_ = SDL_GetTicks();
 }
 
-
 void AnimObj::
-blit(int x, int y) 
+update_animation(uint32_t now)
 {
-    uint32_t now = SDL_GetTicks();
     Anim &a = animations_[actual_];
-
-//    std::cerr << "frame: " << frame_ << " next:"<< next_frame_ << " now:" << now << '\n';
     if (now >= next_frame_) {
         frame_++;
         if (frame_ >= a.frames.size())
             frame_ = 0;
         next_frame_ += a.frames[frame_].persistence;
     }
-
-    lowblit(a.sheet, a.frames[frame_].box, x, y);
 }
+
+bool AnimObj::
+on_screen(int mapx, int mapy) const
+{
+    AnimCIt it = animations_.find(actual_);
+
+    if (it != animations_.end())     
+        return Object::on_screen(it->second.frames[frame_].box, mapx, mapy);
+
+    return false;
+}
+
+void AnimObj::
+blit(int x, int y) const
+{
+    AnimCIt it = animations_.find(actual_);
+
+    if (it != animations_.end())     
+        lowblit(it->second.sheet, it->second.frames[frame_].box, x, y);
+}   
 
 SDL_Surface *AnimObj::
 load_sheets(const std::map<std::string, std::string> &sheets)
